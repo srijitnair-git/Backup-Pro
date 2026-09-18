@@ -1,0 +1,194 @@
+{
+  "summary": "Backup Pro is an open-source Flutter-based FolderSync replacement for Android (and eventually iOS). It securely archives folders, SMS, and call logs to a personal NAS over an SMB connection. It features a premium UI/UX design, resilient file transfer protocols, home screen widgets, and automated GitHub-to-Play-Store deployments.",
+  "categories": [
+    { "name": "App Core", "color_hex": "#7CA8E8", "icon": "Smartphone" },
+    { "name": "UI/UX", "color_hex": "#FF9F43", "icon": "Palette" },
+    { "name": "Data Extractors", "color_hex": "#F4D03F", "icon": "Files" },
+    { "name": "Network & Storage", "color_hex": "#7CC6A4", "icon": "Server" },
+    { "name": "Background Ops", "color_hex": "#E0B0FF", "icon": "Clock" },
+    { "name": "DevOps & Distribution", "color_hex": "#EC7063", "icon": "Rocket" },
+    { "name": "Legal", "color_hex": "#95A5A6", "icon": "Scale" }
+  ],
+  "concepts": [
+    {
+      "key": "flutter-ui",
+      "title": "Flutter UI & State",
+      "description": "Cross-platform user interface for configuring NAS credentials, sync folders, and backup schedules.",
+      "parent": null,
+      "status": "proposed",
+      "category": "App Core",
+      "tags": ["frontend", "config"]
+    },
+    {
+      "key": "design-system",
+      "title": "Premium Design System",
+      "description": "Establishes a consistent premium brand, color palette, strict Light/Dark mode definitions, and unified button animations.",
+      "parent": "flutter-ui",
+      "status": "proposed",
+      "category": "UI/UX",
+      "tags": ["design", "branding", "reusable"]
+    },
+    {
+      "key": "transfer-dashboard",
+      "title": "Live Transfer Dashboard",
+      "description": "Displays loading screens, real-time transfer speeds, and smooth progress bars during active backups.",
+      "parent": "flutter-ui",
+      "status": "proposed",
+      "category": "UI/UX",
+      "tags": ["ux", "monitoring"]
+    },
+    {
+      "key": "home-screen-widget",
+      "title": "Home Screen Widget",
+      "description": "Native Android home screen widgets (in 3 sizes) displaying latest backup status, run time, and a manual 'Backup Now' button.",
+      "notes": "Requires native Android integration (e.g. via home_widget plugin) and bridges state from WorkManager.",
+      "parent": "flutter-ui",
+      "status": "proposed",
+      "category": "UI/UX",
+      "tags": ["android-native", "ux"]
+    },
+    {
+      "key": "system-notifications",
+      "title": "System & Lockscreen Alerts",
+      "description": "Provides OS-level notifications and lockscreen updates for background progress and completion states.",
+      "parent": "flutter-ui",
+      "status": "proposed",
+      "category": "UI/UX",
+      "tags": ["android-native", "notifications"]
+    },
+    {
+      "key": "background-scheduler",
+      "title": "Background Scheduler",
+      "description": "Periodically triggers the backup process based on constraints like Wi-Fi and charging state.",
+      "notes": "Relies on Android WorkManager (via Flutter plugins). Must handle battery optimization restrictions gracefully.",
+      "parent": null,
+      "status": "proposed",
+      "category": "Background Ops",
+      "tags": ["android-native", "battery"]
+    },
+    {
+      "key": "foreground-service",
+      "title": "Persistent Foreground Service",
+      "description": "Promotes the app to a foreground state with a sticky notification during active transfers so Android doesn't kill it.",
+      "parent": "background-scheduler",
+      "status": "proposed",
+      "category": "Background Ops",
+      "tags": ["android-native", "reliability"]
+    },
+    {
+      "key": "network-awareness",
+      "title": "Network Context & Routing",
+      "description": "Detects if the phone is on the local network with the NAS to decide whether the VPN is needed.",
+      "parent": "background-scheduler",
+      "status": "proposed",
+      "category": "Network & Storage",
+      "tags": ["network"]
+    },
+    {
+      "key": "vpn-controller",
+      "title": "VPN Controller",
+      "description": "Automatically enables the VPN before backup (only if not on the local NAS network) and disables it after.",
+      "notes": "Uses Android Intents to trigger installed third-party VPN apps (like WireGuard or OpenVPN).",
+      "parent": "network-awareness",
+      "status": "proposed",
+      "category": "Network & Storage",
+      "tags": ["android-intents", "security"]
+    },
+    {
+      "key": "smb-client",
+      "title": "SMB / CIFS Client",
+      "description": "Handles file transfers to the local network NAS over the SMB protocol.",
+      "parent": null,
+      "status": "proposed",
+      "category": "Network & Storage",
+      "tags": ["protocol", "network"]
+    },
+    {
+      "key": "sync-engine",
+      "title": "One-Way Archive Engine",
+      "description": "Compares local files with the NAS and uploads new or changed files.",
+      "notes": "Strictly one-way archive: files deleted on the phone remain on the NAS. Built with minimal, reusable core elements.",
+      "parent": "background-scheduler",
+      "status": "proposed",
+      "category": "App Core",
+      "tags": ["core-logic", "efficient"]
+    },
+    {
+      "key": "transfer-resiliency",
+      "title": "Transfer Resiliency Protocol",
+      "description": "Handles file collisions, network drops, wait times, error management, and resumes partially copied files.",
+      "notes": "Crucial for large backups over unstable Wi-Fi or VPNs.",
+      "parent": "sync-engine",
+      "status": "proposed",
+      "category": "Network & Storage",
+      "tags": ["reliability", "error-handling"]
+    },
+    {
+      "key": "diagnostic-logger",
+      "title": "Diagnostic Logger",
+      "description": "Captures and stores structured logs of all errors, network drops, and transfer issues for user debugging.",
+      "parent": "sync-engine",
+      "status": "proposed",
+      "category": "App Core",
+      "tags": ["logging", "debugging"]
+    },
+    {
+      "key": "file-filter-engine",
+      "title": "File Filter & Limits Engine",
+      "description": "Manages file size constraints and file type filtering (e.g., ignoring temp files or oversized videos).",
+      "parent": "sync-engine",
+      "status": "proposed",
+      "category": "App Core",
+      "tags": ["filtering"]
+    },
+    {
+      "key": "telephony-extractor",
+      "title": "SMS & Call Log Extractor",
+      "description": "Reads system SMS messages and Call History logs and formats them as JSON.",
+      "notes": "JSON format chosen specifically for easy rendering on personal websites. Requires native Android permissions.",
+      "parent": "sync-engine",
+      "status": "proposed",
+      "category": "Data Extractors",
+      "tags": ["android-native", "permissions", "json"]
+    },
+    {
+      "key": "folder-scanner",
+      "title": "Global Storage Scanner",
+      "description": "Scans user-selected local directories for new or modified files across the entire device storage.",
+      "notes": "Requires Android's MANAGE_EXTERNAL_STORAGE (All Files Access) permission to reach beyond media files and standard directories.",
+      "parent": "sync-engine",
+      "status": "proposed",
+      "category": "Data Extractors",
+      "tags": ["filesystem", "permissions"]
+    },
+    {
+      "key": "github-actions-ci",
+      "title": "GitHub Actions CI/CD",
+      "description": "Automated pipeline to build the Android App Bundle (AAB) and push it directly to the Google Play Console.",
+      "parent": null,
+      "status": "proposed",
+      "category": "DevOps & Distribution",
+      "tags": ["automation", "ci-cd"]
+    },
+    {
+      "key": "open-source-license",
+      "title": "Free / Open Source License",
+      "description": "The repository and app are distributed under a free open-source license (e.g., MIT or GPLv3).",
+      "parent": null,
+      "status": "proposed",
+      "category": "Legal",
+      "tags": ["licensing"]
+    }
+  ],
+  "links": [
+    { "from": "sync-engine", "to": "smb-client", "type": "depends-on" },
+    { "from": "network-awareness", "to": "vpn-controller", "type": "triggers-on" },
+    { "from": "vpn-controller", "to": "smb-client", "type": "blocks" },
+    { "from": "flutter-ui", "to": "background-scheduler", "type": "triggers-on" },
+    { "from": "system-notifications", "to": "background-scheduler", "type": "triggers-on" },
+    { "from": "transfer-dashboard", "to": "sync-engine", "type": "depends-on" },
+    { "from": "foreground-service", "to": "sync-engine", "type": "blocks" },
+    { "from": "github-actions-ci", "to": "flutter-ui", "type": "depends-on" },
+    { "from": "home-screen-widget", "to": "background-scheduler", "type": "triggers-on" }
+  ]
+}
