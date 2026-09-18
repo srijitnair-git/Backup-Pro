@@ -8,9 +8,9 @@ class HomeWidgetManager {
   static const String iOSWidgetNameMedium = 'BackupProWidgetMedium';
   static const String iOSWidgetNameLarge = 'BackupProWidgetLarge';
 
-  static const String androidWidgetNameSmall = 'BackupProWidgetProviderSmall';
-  static const String androidWidgetNameMedium = 'BackupProWidgetProviderMedium';
-  static const String androidWidgetNameLarge = 'BackupProWidgetProviderLarge';
+  static const String androidWidgetNameSmall = 'SmallWidgetProvider';
+  static const String androidWidgetNameMedium = 'MediumWidgetProvider';
+  static const String androidWidgetNameLarge = 'LargeWidgetProvider';
 
   static Future<void> initialize() async {
     await HomeWidget.setAppGroupId(appGroupId);

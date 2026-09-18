@@ -33,9 +33,9 @@
         </activity>
 
         <service
-            android:name="id.flutter.flutter_background_service.BackgroundService"
+            android:name="com.pravera.flutter_foreground_task.service.ForegroundService"
             android:foregroundServiceType="dataSync"
-            android:exported="true" />
+            android:exported="false" />
             
         <receiver android:name=".SmallWidgetProvider" android:exported="true">
             <intent-filter>
