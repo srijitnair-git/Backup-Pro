@@ -1,12 +1,11 @@
 # Backup Pro - Product Requirements Document (PRD)
 
 ## 1. Vision & Goals
-Backup Pro is a free, open-source Android (and future iOS) application designed to completely replace "FolderSync" for a personal group of 3-4 users. It provides robust, resilient, and fully automated one-way archiving of folders, SMS, and Call Logs to a personal NAS over an SMB/CIFS connection.
+Backup Pro is a free, open-source Android (and future iOS) application designed to completely replace "FolderSync" for a personal group of 3-4 users. It provides robust, resilient, and fully automated one-way archiving of folders to a personal NAS over an SMB/CIFS connection.
 
 ## 2. Core Features
 - **One-Way Archive Sync**: Copies new and modified files to the NAS. Files deleted on the device remain safe on the NAS.
 - **Global Storage Scanner**: Leverages `MANAGE_EXTERNAL_STORAGE` to access and backup any folder on the device.
-- **Telephony Extraction**: Reads SMS and Call Logs, converting them to clean JSON format for easy viewing on personal web dashboards.
 - **Network & VPN Automation**: 
   - Detects if the device is on the local network. 
   - If remote, it automatically triggers a third-party VPN app (via Intents) to secure the connection before syncing.
