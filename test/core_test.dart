@@ -11,8 +11,14 @@ void main() {
     expect(theme.primaryColor, const Color(0xFF1E3A8A));
   });
 
-  test('HomeWidgetManager has correct names', () {
-    expect(HomeWidgetManager.iOSWidgetName, 'BackupProWidget');
-    expect(HomeWidgetManager.androidWidgetName, 'BackupProWidgetProvider');
+  test('HomeWidgetManager has correct names for 3 sizes', () {
+    expect(HomeWidgetManager.iOSWidgetNameSmall, 'BackupProWidgetSmall');
+    expect(HomeWidgetManager.androidWidgetNameSmall, 'BackupProWidgetProviderSmall');
+    
+    expect(HomeWidgetManager.iOSWidgetNameMedium, 'BackupProWidgetMedium');
+    expect(HomeWidgetManager.androidWidgetNameMedium, 'BackupProWidgetProviderMedium');
+    
+    expect(HomeWidgetManager.iOSWidgetNameLarge, 'BackupProWidgetLarge');
+    expect(HomeWidgetManager.androidWidgetNameLarge, 'BackupProWidgetProviderLarge');
   });
 }
