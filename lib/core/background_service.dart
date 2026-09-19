@@ -56,12 +56,17 @@ void callbackDispatcher() {
           );
         }
 
+        await prefs.setString('sync_status', 'Syncing $folderPath');
+        await prefs.setInt('sync_total_files', filesToSync.length);
+
         for (int i = 0; i < filesToSync.length; i++) {
+          await prefs.setInt('sync_current_file', i + 1);
           final File file = filesToSync[i];
           final String relativePath = file.path.replaceFirst(folderPath, '');
           // Remote path structure: /DeviceName/FolderName/relative/path.jpg
           final String remotePath = "MyDevice/${folderPath.split('/').last}$relativePath";
           
+          await prefs.setString('sync_current_filename', file.path.split('/').last);
           print("Uploading $remotePath...");
           await smbClient.uploadFile(file, remotePath);
         }
@@ -70,8 +75,10 @@ void callbackDispatcher() {
         await scanner.updateLastSyncTime(folderPath);
       }
       
+      await prefs.setString('sync_status', 'Complete');
       print("Sync complete.");
     } catch (e) {
+      await prefs.setString('sync_status', 'Failed: $e');
       print("Sync failed: $e");
       if (await FlutterForegroundTask.isRunningService) {
         FlutterForegroundTask.updateService(

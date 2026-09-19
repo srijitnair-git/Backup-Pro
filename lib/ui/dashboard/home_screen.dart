@@ -1,9 +1,64 @@
 import 'package:flutter/material.dart';
+import 'dart:async';
+import 'package:shared_preferences/shared_preferences.dart';
+
 import 'live_transfer_dashboard.dart';
 import 'manual_folder_selection.dart';
+import 'settings_screen.dart';
+import '../../core/background_service.dart';
 
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
+
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  Timer? _timer;
+  double _progress = 0.0;
+  String _currentFile = 'Idle';
+  String _status = 'Idle';
+
+  @override
+  void initState() {
+    super.initState();
+    _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      _pollStatus();
+    });
+    _pollStatus();
+  }
+
+  Future<void> _pollStatus() async {
+    final prefs = await SharedPreferences.getInstance();
+    final status = prefs.getString('sync_status') ?? 'Idle';
+    final current = prefs.getInt('sync_current_file') ?? 0;
+    final total = prefs.getInt('sync_total_files') ?? 1;
+    final filename = prefs.getString('sync_current_filename') ?? 'Waiting...';
+
+    double progress = total == 0 ? 0 : current / total;
+
+    if (mounted) {
+      setState(() {
+        _status = status;
+        _progress = progress;
+        _currentFile = status == 'Complete' ? 'All files synced' : filename;
+      });
+    }
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
+  }
+
+  void _startSync() {
+    BackgroundService().startSync();
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Sync triggered in background')),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -27,9 +82,9 @@ class HomeScreen extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            const LiveTransferDashboard(
-              progress: 0.78,
-              currentFile: 'IMG_4812_Photo_Paris.jpg',
+            LiveTransferDashboard(
+              progress: _progress,
+              currentFile: _currentFile,
             ),
             const SizedBox(height: 32),
             _ActionTile(
@@ -45,9 +100,21 @@ class HomeScreen extends StatelessWidget {
             ),
             const SizedBox(height: 16),
             _ActionTile(
+              icon: Icons.settings_ethernet,
+              title: 'NAS Configuration',
+              subtitle: 'Set IP, Share, and Credentials',
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const SettingsScreen()),
+                );
+              },
+            ),
+            const SizedBox(height: 16),
+            _ActionTile(
               icon: Icons.history,
-              title: 'Last Backup',
-              subtitle: 'Completed 2h ago (12.1 GB)',
+              title: 'System Status',
+              subtitle: _status,
               onTap: () {},
             ),
           ],
@@ -56,11 +123,7 @@ class HomeScreen extends StatelessWidget {
       bottomNavigationBar: Padding(
         padding: const EdgeInsets.all(16.0),
         child: ElevatedButton.icon(
-          onPressed: () {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Sync triggered in background')),
-            );
-          },
+          onPressed: _startSync,
           icon: const Icon(Icons.sync),
           label: const Text('Sync Now', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
           style: ElevatedButton.styleFrom(

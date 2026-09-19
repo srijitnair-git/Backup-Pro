@@ -113,11 +113,11 @@ class LiveTransferDashboard extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 12),
-          const Row(
+          Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              _StatsCard(title: 'Transfer Speed', value: '14.8 MB/s', icon: Icons.speed),
-              _StatsCard(title: 'Remaining Time', value: '4 mins', icon: Icons.timer),
+              _StatsCard(title: 'Transfer Speed', value: progress > 0 && progress < 1 ? 'Active' : 'Idle', icon: Icons.speed),
+              _StatsCard(title: 'Status', value: progress == 1.0 ? 'Complete' : 'Pending', icon: Icons.info_outline),
             ],
           )
         ],
