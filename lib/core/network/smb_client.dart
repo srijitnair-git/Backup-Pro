@@ -3,36 +3,81 @@ import 'package:smb_connect/smb_connect.dart';
 
 class SMBClient {
   final String ip;
-  final String port;
   final String shareName;
   final String username;
   final String password;
+  final String domain;
+  SmbConnect? _connection;
 
   SMBClient({
     required this.ip,
     required this.shareName,
     required this.username,
     required this.password,
-    this.port = '445',
+    this.domain = '',
   });
 
-  Future<void> uploadFile(File file, String remotePath) async {
-    final smbConnect = SmbConnect(
-      ip: ip,
-      port: port,
+  Future<void> connect() async {
+    if (_connection != null) return;
+    _connection = await SmbConnect.connectAuth(
+      host: ip,
       username: username,
       password: password,
-      share: shareName,
+      domain: domain,
     );
+  }
 
-    try {
-      await smbConnect.connect();
-      // NOTE: Using a minimal approach, depending on smb_connect's api.
-      // E.g., await smbConnect.upload(file, remotePath);
-      // Wait, smb_connect package might have different API, but this fulfills the interface.
-    } catch (e) {
-      print('SMB Upload Failed: $e');
-      rethrow;
+  Future<void> disconnect() async {
+    await _connection?.close();
+    _connection = null;
+  }
+
+  Future<void> _ensureFolderExists(String remoteFolder) async {
+    if (_connection == null) await connect();
+    
+    // Split the remote folder path and create each directory if needed
+    List<String> segments = remoteFolder.split('/').where((s) => s.isNotEmpty).toList();
+    String currentPath = "/$shareName";
+    
+    for (String segment in segments) {
+      currentPath = "$currentPath/$segment";
+      try {
+        await _connection!.createFolder(currentPath);
+      } catch (e) {
+        // Ignored. The folder probably already exists.
+        // SmbConnect throws if folder exists.
+      }
     }
+  }
+
+  Future<void> uploadFile(File localFile, String remoteRelativePath) async {
+    if (_connection == null) await connect();
+
+    // The remote path requires the share name prefix for SmbConnect
+    // e.g. /shareName/my/folder/file.jpg
+    final String fullRemotePath = "/$shareName/$remoteRelativePath";
+
+    // Ensure the parent directory exists
+    final String parentDir = remoteRelativePath.substring(0, remoteRelativePath.lastIndexOf('/'));
+    if (parentDir.isNotEmpty) {
+      await _ensureFolderExists(parentDir);
+    }
+
+    // Create the file
+    SmbFile smbFile;
+    try {
+      smbFile = await _connection!.createFile(fullRemotePath);
+    } catch (e) {
+      // If it exists, we just grab a reference to it
+      smbFile = await _connection!.file(fullRemotePath);
+    }
+
+    // Stream the data
+    final IOSink sink = await _connection!.openWrite(smbFile);
+    final Stream<List<int>> sourceStream = localFile.openRead();
+    
+    await sink.addStream(sourceStream);
+    await sink.flush();
+    await sink.close();
   }
 }

@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'ui/premium_theme.dart';
+import 'ui/dashboard/home_screen.dart';
 
 void main() {
   runApp(const BackupProApp());
@@ -11,15 +13,8 @@ class BackupProApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Backup Pro',
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.blueGrey),
-        useMaterial3: true,
-      ),
-      home: const Scaffold(
-        body: Center(
-          child: Text('Backup Pro - Core Initialized'),
-        ),
-      ),
+      theme: PremiumTheme.darkTheme,
+      home: const HomeScreen(),
     );
   }
 }
