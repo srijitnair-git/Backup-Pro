@@ -12,6 +12,7 @@ void main() {
           body: LiveTransferDashboard(
             progress: 0.5,
             currentFile: 'IMG_1234.jpg',
+            status: 'Syncing Camera',
           ),
         ),
       ),
@@ -20,6 +21,23 @@ void main() {
     expect(find.text('Live Transfer Dashboard'), findsOneWidget);
     expect(find.text('Syncing: IMG_1234.jpg'), findsOneWidget);
     expect(find.byType(LinearProgressIndicator), findsOneWidget);
+  });
+
+  testWidgets('LiveTransferDashboard shows Idle, not Syncing, when nothing is active', (WidgetTester tester) async {
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: Scaffold(
+          body: LiveTransferDashboard(
+            progress: 0.0,
+            currentFile: 'Idle',
+            status: 'Idle',
+          ),
+        ),
+      ),
+    );
+
+    expect(find.text('Idle'), findsWidgets);
+    expect(find.textContaining('Syncing'), findsNothing);
   });
 
   testWidgets('ManualFolderSelection shows empty state with no folders configured', (WidgetTester tester) async {

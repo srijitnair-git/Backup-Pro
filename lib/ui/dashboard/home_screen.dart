@@ -85,6 +85,7 @@ class _HomeScreenState extends State<HomeScreen> {
             LiveTransferDashboard(
               progress: _progress,
               currentFile: _currentFile,
+              status: _status,
             ),
             const SizedBox(height: 28),
             _ActionTile(

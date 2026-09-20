@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'nas_folder_browser.dart';
+
 class FolderPair {
   String local;
   String remote;
@@ -69,40 +71,32 @@ class _ManualFolderSelectionState extends State<ManualFolderSelection> {
 
   Future<void> _pickFolder() async {
     String? selectedDirectory = await FilePicker.getDirectoryPath();
-    if (selectedDirectory != null) {
-      if (_folders.any((f) => f.local == selectedDirectory)) return;
-      setState(() {
-        _folders.add(FolderPair(local: selectedDirectory, remote: selectedDirectory.split('/').last));
-        _lastSyncEpochs[selectedDirectory] = 0;
-      });
-    }
+    if (selectedDirectory == null) return;
+    if (_folders.any((f) => f.local == selectedDirectory)) return;
+
+    final defaultRemote = selectedDirectory.split('/').last;
+    final pair = FolderPair(local: selectedDirectory, remote: defaultRemote);
+    setState(() {
+      _folders.add(pair);
+      _lastSyncEpochs[selectedDirectory] = 0;
+    });
+
+    // A folder pair needs both a source and a destination - immediately
+    // prompt for the NAS destination instead of silently defaulting it.
+    await _editDestination(pair, initialPath: defaultRemote);
   }
 
   void _removeFolder(FolderPair pair) {
     setState(() => _folders.remove(pair));
   }
 
-  Future<void> _editDestination(FolderPair pair) async {
-    final controller = TextEditingController(text: pair.remote);
-    final result = await showDialog<String>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Destination Path on NAS'),
-        content: TextField(
-          controller: controller,
-          decoration: const InputDecoration(
-            labelText: 'Relative path under the NAS share',
-            border: OutlineInputBorder(),
-          ),
-        ),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
-          TextButton(onPressed: () => Navigator.pop(context, controller.text.trim()), child: const Text('Save')),
-        ],
-      ),
+  Future<void> _editDestination(FolderPair pair, {String? initialPath}) async {
+    final result = await Navigator.push<String>(
+      context,
+      MaterialPageRoute(builder: (_) => NasFolderBrowser(initialPath: initialPath ?? pair.remote)),
     );
 
-    if (result != null && result.isNotEmpty) {
+    if (result != null && mounted) {
       setState(() => pair.remote = result);
     }
   }

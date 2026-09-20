@@ -50,6 +50,22 @@ class SMBClient {
     }
   }
 
+  /// Lists the subfolders directly under [remoteRelativePath] (relative to
+  /// the share root; pass '' for the share root itself).
+  Future<List<SmbFile>> listFolders(String remoteRelativePath) async {
+    if (_connection == null) await connect();
+
+    final String fullRemotePath = remoteRelativePath.isEmpty ? "/$shareName" : "/$shareName/$remoteRelativePath";
+    final SmbFile folder = await _connection!.file(fullRemotePath);
+    final List<SmbFile> entries = await _connection!.listFiles(folder);
+
+    return entries.where((f) => f.isDirectory() && f.name != '.' && f.name != '..').toList();
+  }
+
+  Future<void> createFolder(String remoteRelativePath) async {
+    await _ensureFolderExists(remoteRelativePath);
+  }
+
   Future<void> uploadFile(File localFile, String remoteRelativePath) async {
     if (_connection == null) await connect();
 
