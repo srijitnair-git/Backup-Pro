@@ -169,38 +169,52 @@ class _ManualFolderSelectionState extends State<ManualFolderSelection> {
                       final pair = _folders[index];
                       final folderName = pair.local.split('/').last;
                       final synced = (_lastSyncEpochs[pair.local] ?? 0) > 0;
-                      return Card(
+                      return Container(
                         margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                        color: Theme.of(context).colorScheme.surface,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                        child: ListTile(
-                          leading: Icon(
-                            synced ? Icons.cloud_done : Icons.cloud_off,
-                            color: synced ? Colors.green : Colors.grey,
-                          ),
-                          title: Text(folderName, style: const TextStyle(fontWeight: FontWeight.bold)),
-                          subtitle: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text('From: ${pair.local}', style: const TextStyle(fontSize: 12)),
-                              Text('To: ${pair.remote}', style: const TextStyle(fontSize: 12)),
-                              Text(_syncStatusLabel(pair), style: const TextStyle(fontSize: 11, color: Colors.grey)),
-                            ],
-                          ),
-                          isThreeLine: true,
-                          trailing: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              IconButton(
-                                icon: const Icon(Icons.edit_outlined),
-                                onPressed: () => _editDestination(pair),
-                              ),
-                              IconButton(
-                                icon: const Icon(Icons.delete_outline, color: Colors.redAccent),
-                                onPressed: () => _removeFolder(pair),
-                              ),
-                            ],
-                          ),
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: Theme.of(context).colorScheme.surface,
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(color: Colors.white10),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                Icon(
+                                  synced ? Icons.cloud_done : Icons.cloud_off,
+                                  color: synced ? Colors.green : Colors.grey,
+                                ),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: Text(
+                                    folderName,
+                                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                                  ),
+                                ),
+                                IconButton(
+                                  icon: const Icon(Icons.edit_outlined),
+                                  tooltip: 'Edit destination',
+                                  onPressed: () => _editDestination(pair),
+                                ),
+                                IconButton(
+                                  icon: const Icon(Icons.delete_outline, color: Colors.redAccent),
+                                  tooltip: 'Remove folder',
+                                  onPressed: () => _removeFolder(pair),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 12),
+                            _FolderPathRow(label: 'Source', value: pair.local),
+                            const SizedBox(height: 6),
+                            _FolderPathRow(label: 'Destination', value: pair.remote),
+                            const SizedBox(height: 10),
+                            Text(
+                              _syncStatusLabel(pair),
+                              style: const TextStyle(fontSize: 12, color: Colors.grey),
+                            ),
+                          ],
                         ),
                       );
                     },
@@ -218,6 +232,36 @@ class _ManualFolderSelectionState extends State<ManualFolderSelection> {
         icon: const Icon(Icons.save),
         label: const Text('Save Configuration'),
       ) : null,
+    );
+  }
+}
+
+class _FolderPathRow extends StatelessWidget {
+  final String label;
+  final String value;
+
+  const _FolderPathRow({required this.label, required this.value});
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        SizedBox(
+          width: 78,
+          child: Text(
+            label,
+            style: const TextStyle(fontSize: 12, color: Colors.grey, fontWeight: FontWeight.w600),
+          ),
+        ),
+        Expanded(
+          child: Text(
+            value,
+            style: const TextStyle(fontSize: 13),
+            overflow: TextOverflow.ellipsis,
+          ),
+        ),
+      ],
     );
   }
 }

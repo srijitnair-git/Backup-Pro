@@ -20,10 +20,14 @@ class MainActivity : FlutterActivity() {
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
+        // Only "getInstalledVpnApps" is served here (Settings screen, always
+        // run in the foreground UI engine). Launching the VPN app itself is
+        // done via url_launcher from Dart instead, because that also needs to
+        // work from Workmanager's headless background engine, which never
+        // calls configureFlutterEngine and so never sees this channel.
         MethodChannel(flutterEngine.dartExecutor.binaryMessenger, channelName).setMethodCallHandler { call, result ->
             when (call.method) {
                 "getInstalledVpnApps" -> result.success(getInstalledVpnApps())
-                "launchPackage" -> result.success(launchPackage(call.argument<String>("package")))
                 else -> result.notImplemented()
             }
         }
@@ -39,12 +43,5 @@ class MainActivity : FlutterActivity() {
                 null
             }
         }
-    }
-
-    private fun launchPackage(pkg: String?): Boolean {
-        if (pkg == null) return false
-        val intent = packageManager.getLaunchIntentForPackage(pkg) ?: return false
-        startActivity(intent)
-        return true
     }
 }

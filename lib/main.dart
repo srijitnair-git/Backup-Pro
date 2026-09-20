@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
+import 'core/background_service.dart';
 import 'ui/premium_theme.dart';
 import 'ui/dashboard/home_screen.dart';
 
 void main() {
+  WidgetsFlutterBinding.ensureInitialized();
+  BackgroundService().initialize();
   runApp(const BackupProApp());
 }
 

@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class VpnApp {
   final String package;
@@ -39,7 +40,21 @@ class VpnManager {
     final preferredPackage = prefs.getString('preferred_vpn_package');
     if (preferredPackage == null) return false;
 
-    await _channel.invokeMethod('launchPackage', {'package': preferredPackage});
+    try {
+      // Launching by MethodChannel would only work when a UI FlutterEngine is
+      // attached (e.g. MainActivity's configureFlutterEngine). Scheduled syncs
+      // run in Workmanager's headless background isolate, which has no such
+      // engine, so a custom platform channel there throws MissingPluginException.
+      // url_launcher is a real registered plugin and works in both engines.
+      await launchUrl(
+        Uri(scheme: 'android-app', host: preferredPackage),
+        mode: LaunchMode.externalApplication,
+      );
+    } catch (_) {
+      // Fall through to the reachability retries below; if the VPN never
+      // came up we report unreachable rather than throwing out of a
+      // background sync task.
+    }
 
     // ponytail: fixed poll/backoff waiting for the VPN to connect, not an
     // event-based hook into the VPN app's own connection state (none of the

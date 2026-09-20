@@ -78,7 +78,7 @@ class _HomeScreenState extends State<HomeScreen> {
         backgroundColor: Colors.transparent,
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+        padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
@@ -86,7 +86,7 @@ class _HomeScreenState extends State<HomeScreen> {
               progress: _progress,
               currentFile: _currentFile,
             ),
-            const SizedBox(height: 32),
+            const SizedBox(height: 28),
             _ActionTile(
               icon: Icons.folder_copy_outlined,
               title: 'Backup Sources',
@@ -98,7 +98,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 );
               },
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 14),
             _ActionTile(
               icon: Icons.settings_ethernet,
               title: 'NAS Configuration',
@@ -110,29 +110,27 @@ class _HomeScreenState extends State<HomeScreen> {
                 );
               },
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 14),
             _ActionTile(
               icon: Icons.history,
               title: 'System Status',
               subtitle: _status,
               onTap: () {},
             ),
+            const SizedBox(height: 28),
+            ElevatedButton.icon(
+              onPressed: _startSync,
+              icon: const Icon(Icons.sync),
+              label: const Text('Sync Now', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+              style: ElevatedButton.styleFrom(
+                padding: const EdgeInsets.symmetric(vertical: 20),
+                backgroundColor: Colors.blueAccent,
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                elevation: 8,
+              ),
+            ),
           ],
-        ),
-      ),
-      bottomNavigationBar: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: ElevatedButton.icon(
-          onPressed: _startSync,
-          icon: const Icon(Icons.sync),
-          label: const Text('Sync Now', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-          style: ElevatedButton.styleFrom(
-            padding: const EdgeInsets.symmetric(vertical: 20),
-            backgroundColor: Colors.blueAccent,
-            foregroundColor: Colors.white,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-            elevation: 8,
-          ),
         ),
       ),
     );

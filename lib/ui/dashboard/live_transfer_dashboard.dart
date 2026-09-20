@@ -114,10 +114,14 @@ class LiveTransferDashboard extends StatelessWidget {
           ),
           const SizedBox(height: 12),
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              _StatsCard(title: 'Transfer Speed', value: progress > 0 && progress < 1 ? 'Active' : 'Idle', icon: Icons.speed),
-              _StatsCard(title: 'Status', value: progress == 1.0 ? 'Complete' : 'Pending', icon: Icons.info_outline),
+              Expanded(
+                child: _StatsCard(title: 'Transfer Speed', value: progress > 0 && progress < 1 ? 'Active' : 'Idle', icon: Icons.speed),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: _StatsCard(title: 'Status', value: progress == 1.0 ? 'Complete' : 'Pending', icon: Icons.info_outline),
+              ),
             ],
           )
         ],
@@ -136,7 +140,6 @@ class _StatsCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: (MediaQuery.of(context).size.width - 72) / 2, // Accounting for padding
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: Theme.of(context).scaffoldBackgroundColor,

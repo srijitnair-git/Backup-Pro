@@ -131,74 +131,86 @@ class _SettingsScreenState extends State<SettingsScreen> {
     }
 
     return Scaffold(
-      appBar: AppBar(title: const Text('NAS Configuration')),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      appBar: AppBar(title: const Text('NAS Configuration'), elevation: 0, backgroundColor: Colors.transparent),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            TextField(
-              controller: _ipController,
-              decoration: const InputDecoration(
-                labelText: 'NAS IP Address (e.g. 192.168.1.100)',
-                border: OutlineInputBorder(),
-              ),
-              keyboardType: TextInputType.number,
-            ),
-            const SizedBox(height: 16),
-            TextField(
-              controller: _shareController,
-              decoration: const InputDecoration(
-                labelText: 'Share Name (e.g. Backup)',
-                border: OutlineInputBorder(),
-              ),
-            ),
-            const SizedBox(height: 16),
-            TextField(
-              controller: _userController,
-              decoration: const InputDecoration(
-                labelText: 'Username',
-                border: OutlineInputBorder(),
-              ),
-            ),
-            const SizedBox(height: 16),
-            TextField(
-              controller: _passController,
-              decoration: const InputDecoration(
-                labelText: 'Password',
-                border: OutlineInputBorder(),
-              ),
-              obscureText: true,
-            ),
-            const SizedBox(height: 16),
-            if (_vpnApps.isNotEmpty)
-              DropdownButtonFormField<String>(
-                initialValue: _vpnApps.any((a) => a.package == _preferredVpnPackage) ? _preferredVpnPackage : null,
-                decoration: const InputDecoration(
-                  labelText: 'Preferred VPN app (auto-launched when off-network)',
-                  border: OutlineInputBorder(),
+            _SettingsSection(
+              title: 'NAS Credentials',
+              children: [
+                TextField(
+                  controller: _ipController,
+                  decoration: const InputDecoration(
+                    labelText: 'NAS IP Address (e.g. 192.168.1.100)',
+                    border: OutlineInputBorder(),
+                  ),
+                  keyboardType: TextInputType.number,
                 ),
-                items: _vpnApps
-                    .map((a) => DropdownMenuItem(value: a.package, child: Text(a.label)))
-                    .toList(),
-                onChanged: (value) => setState(() => _preferredVpnPackage = value),
-              )
-            else
-              const Text(
-                'No supported VPN apps detected on this device.',
-                style: TextStyle(color: Colors.grey, fontSize: 12),
-              ),
-            const SizedBox(height: 16),
-            SizedBox(
-              width: double.infinity,
-              child: OutlinedButton.icon(
-                onPressed: _testState == _ConnectionTestState.testing ? null : _testConnection,
-                icon: const Icon(Icons.wifi_tethering),
-                label: const Text('Test Connection'),
-                style: OutlinedButton.styleFrom(padding: const EdgeInsets.symmetric(vertical: 14)),
-              ),
+                const SizedBox(height: 16),
+                TextField(
+                  controller: _shareController,
+                  decoration: const InputDecoration(
+                    labelText: 'Share Name (e.g. Backup)',
+                    border: OutlineInputBorder(),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                TextField(
+                  controller: _userController,
+                  decoration: const InputDecoration(
+                    labelText: 'Username',
+                    border: OutlineInputBorder(),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                TextField(
+                  controller: _passController,
+                  decoration: const InputDecoration(
+                    labelText: 'Password',
+                    border: OutlineInputBorder(),
+                  ),
+                  obscureText: true,
+                ),
+                const SizedBox(height: 16),
+                SizedBox(
+                  width: double.infinity,
+                  child: OutlinedButton.icon(
+                    onPressed: _testState == _ConnectionTestState.testing ? null : _testConnection,
+                    icon: const Icon(Icons.wifi_tethering),
+                    label: const Text('Test Connection'),
+                    style: OutlinedButton.styleFrom(padding: const EdgeInsets.symmetric(vertical: 14)),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                _buildTestResult(),
+              ],
             ),
-            const SizedBox(height: 12),
-            _buildTestResult(),
+            const SizedBox(height: 20),
+            _SettingsSection(
+              title: 'VPN Automation',
+              children: [
+                if (_vpnApps.isNotEmpty)
+                  DropdownButtonFormField<String>(
+                    initialValue: _vpnApps.any((a) => a.package == _preferredVpnPackage) ? _preferredVpnPackage : null,
+                    decoration: const InputDecoration(
+                      labelText: 'Preferred VPN app (auto-launched when off-network)',
+                      border: OutlineInputBorder(),
+                    ),
+                    items: _vpnApps
+                        .map((a) => DropdownMenuItem(value: a.package, child: Text(a.label)))
+                        .toList(),
+                    onChanged: (value) => setState(() => _preferredVpnPackage = value),
+                  )
+                else
+                  const Text(
+                    'No supported VPN apps detected on this device.',
+                    style: TextStyle(color: Colors.grey, fontSize: 12),
+                  ),
+              ],
+            ),
             const SizedBox(height: 24),
             SizedBox(
               width: double.infinity,
@@ -222,6 +234,36 @@ class _SettingsScreenState extends State<SettingsScreen> {
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+class _SettingsSection extends StatelessWidget {
+  final String title;
+  final List<Widget> children;
+
+  const _SettingsSection({required this.title, required this.children});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surface,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.white10),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            title,
+            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: Colors.blueAccent),
+          ),
+          const SizedBox(height: 16),
+          ...children,
+        ],
       ),
     );
   }
