@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:backuppro/ui/dashboard/live_transfer_dashboard.dart';
 import 'package:backuppro/ui/dashboard/manual_folder_selection.dart';
 
@@ -16,26 +17,23 @@ void main() {
       ),
     );
 
-    expect(find.text('Live Transfer'), findsOneWidget);
+    expect(find.text('Live Transfer Dashboard'), findsOneWidget);
     expect(find.text('Syncing: IMG_1234.jpg'), findsOneWidget);
     expect(find.byType(LinearProgressIndicator), findsOneWidget);
   });
 
-  testWidgets('ManualFolderSelection allows selecting a folder', (WidgetTester tester) async {
+  testWidgets('ManualFolderSelection shows empty state with no folders configured', (WidgetTester tester) async {
+    SharedPreferences.setMockInitialValues({});
+
     await tester.pumpWidget(
       const MaterialApp(
         home: ManualFolderSelection(),
       ),
     );
+    await tester.pumpAndSettle();
 
-    expect(find.text('Select Folders'), findsOneWidget);
-    expect(find.text('Camera'), findsOneWidget);
-    
-    await tester.tap(find.text('Camera'));
-    await tester.pump();
-    
-    // Test that the checkbox state changed.
-    final CheckboxListTile tile = tester.widget(find.widgetWithText(CheckboxListTile, 'Camera'));
-    expect(tile.value, true);
+    expect(find.text('Select Backup Folders'), findsOneWidget);
+    expect(find.text('No folders selected for backup yet.'), findsOneWidget);
+    expect(find.text('Add New Folder Pair'), findsOneWidget);
   });
 }

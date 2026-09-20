@@ -1,5 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
+import '../../core/network/smb_client.dart';
+import '../../core/network/vpn_manager.dart';
+
+enum _ConnectionTestState { none, testing, success, failure }
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -14,6 +20,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
   final _userController = TextEditingController();
   final _passController = TextEditingController();
   bool _isLoading = true;
+  _ConnectionTestState _testState = _ConnectionTestState.none;
+  String? _testError;
+  List<VpnApp> _vpnApps = [];
+  String? _preferredVpnPackage;
+  String _appVersion = '';
 
   @override
   void initState() {
@@ -23,11 +34,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   Future<void> _loadSettings() async {
     final prefs = await SharedPreferences.getInstance();
+    final vpnApps = await VpnManager().getInstalledVpnApps();
+    final packageInfo = await PackageInfo.fromPlatform();
     setState(() {
       _ipController.text = prefs.getString('nas_ip') ?? '';
       _shareController.text = prefs.getString('nas_share') ?? '';
       _userController.text = prefs.getString('nas_user') ?? '';
       _passController.text = prefs.getString('nas_pass') ?? '';
+      _vpnApps = vpnApps;
+      _preferredVpnPackage = prefs.getString('preferred_vpn_package');
+      _appVersion = 'v${packageInfo.version} (build ${packageInfo.buildNumber})';
       _isLoading = false;
     });
   }
@@ -38,12 +54,73 @@ class _SettingsScreenState extends State<SettingsScreen> {
     await prefs.setString('nas_share', _shareController.text.trim());
     await prefs.setString('nas_user', _userController.text.trim());
     await prefs.setString('nas_pass', _passController.text.trim());
-    
+    if (_preferredVpnPackage != null) {
+      await prefs.setString('preferred_vpn_package', _preferredVpnPackage!);
+    }
+
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('NAS Settings saved successfully')),
       );
       Navigator.pop(context);
+    }
+  }
+
+  Future<void> _testConnection() async {
+    setState(() {
+      _testState = _ConnectionTestState.testing;
+      _testError = null;
+    });
+
+    final client = SMBClient(
+      ip: _ipController.text.trim(),
+      shareName: _shareController.text.trim(),
+      username: _userController.text.trim(),
+      password: _passController.text.trim(),
+    );
+
+    try {
+      await client.connect();
+      await client.disconnect();
+      if (mounted) setState(() => _testState = _ConnectionTestState.success);
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _testState = _ConnectionTestState.failure;
+          _testError = e.toString();
+        });
+      }
+    }
+  }
+
+  Widget _buildTestResult() {
+    switch (_testState) {
+      case _ConnectionTestState.testing:
+        return const Row(
+          children: [
+            SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2)),
+            SizedBox(width: 12),
+            Text('Testing connection...'),
+          ],
+        );
+      case _ConnectionTestState.success:
+        return const Row(
+          children: [
+            Icon(Icons.check_circle, color: Colors.green),
+            SizedBox(width: 8),
+            Text('Connected successfully', style: TextStyle(color: Colors.green)),
+          ],
+        );
+      case _ConnectionTestState.failure:
+        return Row(
+          children: [
+            const Icon(Icons.error, color: Colors.redAccent),
+            const SizedBox(width: 8),
+            Expanded(child: Text('Failed: $_testError', style: const TextStyle(color: Colors.redAccent))),
+          ],
+        );
+      case _ConnectionTestState.none:
+        return const SizedBox.shrink();
     }
   }
 
@@ -92,7 +169,37 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ),
               obscureText: true,
             ),
-            const SizedBox(height: 32),
+            const SizedBox(height: 16),
+            if (_vpnApps.isNotEmpty)
+              DropdownButtonFormField<String>(
+                initialValue: _vpnApps.any((a) => a.package == _preferredVpnPackage) ? _preferredVpnPackage : null,
+                decoration: const InputDecoration(
+                  labelText: 'Preferred VPN app (auto-launched when off-network)',
+                  border: OutlineInputBorder(),
+                ),
+                items: _vpnApps
+                    .map((a) => DropdownMenuItem(value: a.package, child: Text(a.label)))
+                    .toList(),
+                onChanged: (value) => setState(() => _preferredVpnPackage = value),
+              )
+            else
+              const Text(
+                'No supported VPN apps detected on this device.',
+                style: TextStyle(color: Colors.grey, fontSize: 12),
+              ),
+            const SizedBox(height: 16),
+            SizedBox(
+              width: double.infinity,
+              child: OutlinedButton.icon(
+                onPressed: _testState == _ConnectionTestState.testing ? null : _testConnection,
+                icon: const Icon(Icons.wifi_tethering),
+                label: const Text('Test Connection'),
+                style: OutlinedButton.styleFrom(padding: const EdgeInsets.symmetric(vertical: 14)),
+              ),
+            ),
+            const SizedBox(height: 12),
+            _buildTestResult(),
+            const SizedBox(height: 24),
             SizedBox(
               width: double.infinity,
               child: ElevatedButton.icon(
@@ -104,6 +211,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   backgroundColor: Theme.of(context).colorScheme.primary,
                   foregroundColor: Theme.of(context).colorScheme.onPrimary,
                 ),
+              ),
+            ),
+            const SizedBox(height: 24),
+            Center(
+              child: Text(
+                'Backup Pro $_appVersion',
+                style: const TextStyle(color: Colors.grey, fontSize: 12),
               ),
             ),
           ],
