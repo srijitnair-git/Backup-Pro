@@ -35,7 +35,11 @@ jobs:
         run: flutter pub get
 
       - name: Analyze Code
-        run: flutter analyze
+        # --no-fatal-infos: flutter analyze treats info-level lints (e.g. avoid_print,
+        # deprecated_member_use) as fatal by default, which has been failing every
+        # run on this repo since the workflow was added, even for real bugs. Real
+        # errors/warnings still fail the build.
+        run: flutter analyze --no-fatal-infos
 
       - name: Resolve version
         id: version

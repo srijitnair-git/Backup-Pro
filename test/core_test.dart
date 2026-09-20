@@ -1,5 +1,4 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:backuppro/core/background_service.dart';
 import 'package:backuppro/core/network/retry.dart';
 import 'package:backuppro/ui/premium_theme.dart';
 import 'package:backuppro/ui/widgets/home_widgets.dart';
@@ -20,13 +19,14 @@ void main() {
 
   test('withRetry rethrows after exhausting attempts', () async {
     int attempts = 0;
-    expect(
+    await expectLater(
       () => withRetry(() async {
         attempts++;
         throw Exception('always fails');
       }, maxAttempts: 2, initialDelay: Duration.zero),
       throwsException,
     );
+    expect(attempts, 2);
   });
 
   test('PremiumTheme has dark brightness and correct primary color', () {
