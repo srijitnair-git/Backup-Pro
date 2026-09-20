@@ -12,6 +12,8 @@ jobs:
   build:
     name: Build Android App Bundle
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
 
     steps:
       - name: Checkout Repository
@@ -45,8 +47,23 @@ jobs:
       - name: Build AAB
         run: flutter build appbundle --release --build-name=${{ steps.version.outputs.name }} --build-number=${{ steps.version.outputs.build }}
 
-      - name: Upload Artifact
+      - name: Build APK
+        if: github.event_name == 'push'
+        run: flutter build apk --release --build-name=${{ steps.version.outputs.name }} --build-number=${{ steps.version.outputs.build }}
+
+      - name: Upload AAB Artifact
         uses: actions/upload-artifact@v4
         with:
           name: app-release-v${{ steps.version.outputs.name }}-build${{ steps.version.outputs.build }}
           path: build/app/outputs/bundle/release/app-release.aab
+
+      # APK is signed with the debug key (see android/app/build.gradle.kts) —
+      # fine for sideloading to the 3-4 personal devices this app targets,
+      # not for Play Store submission (that still needs the AAB + a real key).
+      - name: Create GitHub Release with APK
+        if: github.event_name == 'push'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ steps.version.outputs.name }}-build${{ steps.version.outputs.build }}
+          name: Backup Pro v${{ steps.version.outputs.name }} (build ${{ steps.version.outputs.build }})
+          files: build/app/outputs/flutter-apk/app-release.apk
