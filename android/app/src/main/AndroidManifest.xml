@@ -1,4 +1,6 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.MANAGE_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
@@ -6,7 +8,7 @@
     <uses-permission android:name="android.permission.WAKE_LOCK" />
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
     <application
-        android:label="backuppro"
+        android:label="Backup Pro"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity
@@ -77,5 +79,13 @@
             <action android:name="android.intent.action.PROCESS_TEXT"/>
             <data android:mimeType="text/plain"/>
         </intent>
+        <!-- Package visibility (Android 11+) for the VPN apps VpnManager can detect and launch. -->
+        <package android:name="com.wireguard.android" />
+        <package android:name="com.tailscale.ipn" />
+        <package android:name="net.openvpn.openvpn" />
+        <package android:name="com.nordvpn.android" />
+        <package android:name="com.protonvpn.android" />
+        <package android:name="com.expressvpn.vpn" />
+        <package android:name="com.surfshark.vpnclient.android" />
     </queries>
 </manifest>

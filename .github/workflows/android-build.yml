@@ -35,11 +35,18 @@ jobs:
       - name: Analyze Code
         run: flutter analyze
 
+      - name: Resolve version
+        id: version
+        run: |
+          VERSION_NAME=$(grep '^version:' pubspec.yaml | sed 's/version: //' | cut -d'+' -f1)
+          echo "name=$VERSION_NAME" >> "$GITHUB_OUTPUT"
+          echo "build=${{ github.run_number }}" >> "$GITHUB_OUTPUT"
+
       - name: Build AAB
-        run: flutter build appbundle --release
+        run: flutter build appbundle --release --build-name=${{ steps.version.outputs.name }} --build-number=${{ steps.version.outputs.build }}
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: app-release
+          name: app-release-v${{ steps.version.outputs.name }}-build${{ steps.version.outputs.build }}
           path: build/app/outputs/bundle/release/app-release.aab

@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Brand navy, matches PremiumTheme.darkTheme primaryColor in lib/ui/premium_theme.dart -->
+    <color name="brand_navy">#FF1E3A8A</color>
+    <color name="ic_launcher_background">#FF1E3A8A</color>
+</resources>
