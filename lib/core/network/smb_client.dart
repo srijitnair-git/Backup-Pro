@@ -1,6 +1,13 @@
 import 'dart:io';
 import 'package:smb_connect/smb_connect.dart';
 
+class RemoteFileEntry {
+  final String relativePath;
+  final int lastModified;
+
+  RemoteFileEntry({required this.relativePath, required this.lastModified});
+}
+
 class SMBClient {
   final String ip;
   final String shareName;
@@ -64,6 +71,50 @@ class SMBClient {
 
   Future<void> createFolder(String remoteRelativePath) async {
     await _ensureFolderExists(remoteRelativePath);
+  }
+
+  /// Recursively walks [remoteBasePath] (relative to the share root) and
+  /// returns every file found, with its path relative to that base and its
+  /// last-modified time.
+  Future<List<RemoteFileEntry>> listFilesRecursive(String remoteBasePath) async {
+    if (_connection == null) await connect();
+
+    final List<RemoteFileEntry> results = [];
+
+    Future<void> walk(String relativeDir) async {
+      final String fullPath = relativeDir.isEmpty
+          ? "/$shareName/$remoteBasePath"
+          : "/$shareName/$remoteBasePath/$relativeDir";
+      final SmbFile folder = await _connection!.file(fullPath);
+      final List<SmbFile> entries = await _connection!.listFiles(folder);
+
+      for (final entry in entries) {
+        if (entry.name == '.' || entry.name == '..') continue;
+        final String childRelative = relativeDir.isEmpty ? entry.name : '$relativeDir/${entry.name}';
+        if (entry.isDirectory()) {
+          await walk(childRelative);
+        } else {
+          results.add(RemoteFileEntry(relativePath: childRelative, lastModified: entry.lastModified));
+        }
+      }
+    }
+
+    await walk('');
+    return results;
+  }
+
+  Future<void> downloadFile(String remoteRelativePath, File localDestination) async {
+    if (_connection == null) await connect();
+
+    final String fullRemotePath = "/$shareName/$remoteRelativePath";
+    final SmbFile smbFile = await _connection!.file(fullRemotePath);
+
+    await localDestination.parent.create(recursive: true);
+    final Stream<List<int>> sourceStream = await _connection!.openRead(smbFile);
+    final IOSink sink = localDestination.openWrite();
+    await sink.addStream(sourceStream);
+    await sink.flush();
+    await sink.close();
   }
 
   Future<void> uploadFile(File localFile, String remoteRelativePath) async {

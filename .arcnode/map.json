@@ -45,6 +45,7 @@
       "key": "transfer-dashboard",
       "title": "Live transfer dashboard",
       "description": "Shows sync progress, the current file, and simple speed/status stats while a backup is running.",
+      "notes": "Used to show a hardcoded 'Data Syncing...' label, a fake static line chart, and an Active/Idle guess derived only from progress, all regardless of whether anything was actually running. Fixed to reflect the real sync_status string everywhere and removed the fake chart entirely rather than leave misleading fake activity on screen.",
       "parent": "flutter-ui",
       "paths": ["lib/ui/dashboard/live_transfer_dashboard.dart"],
       "status": "verified",
@@ -147,14 +148,36 @@
     },
     {
       "key": "sync-engine",
-      "title": "One-way archive engine",
-      "description": "Compares local files against the last sync time and uploads anything new or changed.",
-      "notes": "Strictly one-way archive: files deleted on the phone remain on the NAS. Reads source/destination pairs from folder-pair-config and drives smb-client and network-awareness/vpn-controller before each run.",
+      "title": "Sync engine",
+      "description": "Compares files on each side against the last sync time and moves anything new or changed, in whichever direction that folder pair is set to.",
+      "notes": "Reads source/destination pairs from folder-pair-config (each with its own sync-direction) and drives smb-client and network-awareness/vpn-controller before each run.",
       "parent": "background-scheduler",
-      "paths": ["lib/core/background_service.dart", "lib/core/engine/folder_scanner.dart"],
+      "paths": ["lib/core/background_service.dart", "lib/core/engine/folder_scanner.dart", "lib/core/models/folder_pair.dart"],
       "status": "built",
       "category": "App Core",
       "tags": ["core-logic"]
+    },
+    {
+      "key": "sync-direction",
+      "title": "Per-pair sync direction",
+      "description": "Each folder pair chooses to only upload to the NAS, only download from it, or sync both ways.",
+      "notes": "Modeled on FolderSync Pro's own direction options, researched during this session. Two-way conflict handling is skip-only: a file changed on both sides since the last sync is left alone and logged rather than picking a side, matching FolderSync Pro's own documented default. Deliberately did not build FolderSync Pro's other features (multi-cloud backends, per-pair schedules, file filters, versioned backups, app lock, Tasker integration) — user chose to keep this app SMB/NAS-only.",
+      "parent": "sync-engine",
+      "paths": ["lib/core/models/folder_pair.dart", "lib/core/background_service.dart"],
+      "status": "verified",
+      "category": "App Core",
+      "tags": ["core-logic"]
+    },
+    {
+      "key": "nas-folder-browser",
+      "title": "NAS folder browser",
+      "description": "Lets you browse the real folders on the NAS share and pick one as a destination, instead of typing a path by hand.",
+      "notes": "Replaced free-text destination entry after user feedback. Supports navigating in/out of subfolders and creating a new folder from within the picker.",
+      "parent": "folder-pair-config",
+      "paths": ["lib/ui/dashboard/nas_folder_browser.dart"],
+      "status": "built",
+      "category": "UI/UX",
+      "tags": ["ux", "config"]
     },
     {
       "key": "transfer-resiliency",

@@ -4,19 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../../core/models/folder_pair.dart';
 import 'nas_folder_browser.dart';
-
-class FolderPair {
-  String local;
-  String remote;
-
-  FolderPair({required this.local, required this.remote});
-
-  Map<String, String> toJson() => {'local': local, 'remote': remote};
-
-  factory FolderPair.fromJson(Map<String, dynamic> json) =>
-      FolderPair(local: json['local'] as String, remote: json['remote'] as String);
-}
 
 class ManualFolderSelection extends StatefulWidget {
   const ManualFolderSelection({super.key});
@@ -88,6 +77,10 @@ class _ManualFolderSelectionState extends State<ManualFolderSelection> {
 
   void _removeFolder(FolderPair pair) {
     setState(() => _folders.remove(pair));
+  }
+
+  void _setDirection(FolderPair pair, SyncDirection direction) {
+    setState(() => pair.direction = direction);
   }
 
   Future<void> _editDestination(FolderPair pair, {String? initialPath}) async {
@@ -203,6 +196,17 @@ class _ManualFolderSelectionState extends State<ManualFolderSelection> {
                             _FolderPathRow(label: 'Source', value: pair.local),
                             const SizedBox(height: 6),
                             _FolderPathRow(label: 'Destination', value: pair.remote),
+                            const SizedBox(height: 12),
+                            SegmentedButton<SyncDirection>(
+                              segments: const [
+                                ButtonSegment(value: SyncDirection.toNas, label: Text('To'), icon: Icon(Icons.upload, size: 16)),
+                                ButtonSegment(value: SyncDirection.fromNas, label: Text('From'), icon: Icon(Icons.download, size: 16)),
+                                ButtonSegment(value: SyncDirection.twoWay, label: Text('Two-Way'), icon: Icon(Icons.sync, size: 16)),
+                              ],
+                              selected: {pair.direction},
+                              onSelectionChanged: (selection) => _setDirection(pair, selection.first),
+                              style: const ButtonStyle(visualDensity: VisualDensity.compact),
+                            ),
                             const SizedBox(height: 10),
                             Text(
                               _syncStatusLabel(pair),
